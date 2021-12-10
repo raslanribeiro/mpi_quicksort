@@ -1,0 +1,2 @@
+Total number of Elements in the array : 10
+1  2  3  8  9  12  25  28  30  70  
