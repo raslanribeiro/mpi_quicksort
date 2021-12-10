@@ -11,7 +11,7 @@ void swap(int *arr, int i, int j)
     arr[j] = t;
 }
 
-void quicksort(int *arr, int start, int end)
+void q_sort(int *arr, int start, int end)
 {
     int pivot, index;
 
@@ -34,8 +34,8 @@ void quicksort(int *arr, int start, int end)
 
     swap(arr, start, index);
 
-    quicksort(arr, start, index - start);
-    quicksort(arr, index + 1, start + end - index - 1);
+    q_sort(arr, start, index - start);
+    q_sort(arr, index + 1, start + end - index - 1);
 }
 
 int *merge(int *arr1, int n1, int *arr2, int n2)
@@ -85,8 +85,8 @@ int main(int argc, char *argv[])
 
     if (argc != 3)
     {
-        printf("Desired number of arguments are not their in argv....\n");
-        printf("2 files required first one input and second one output....\n");
+        printf("Não foram passados os 2 arquivos como argumento.\n");
+        printf("São necessários os arquivos: input.txt e output.txt\n");
         exit(-1);
     }
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     if (rc != MPI_SUCCESS)
     {
-        printf("Error in creating MPI program.\nTerminating......\n");
+        printf("Erro no start da aplicação.n");
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
 
@@ -108,38 +108,26 @@ int main(int argc, char *argv[])
 
         if (file == NULL)
         {
-            printf("Error in opening file\n");
+            printf("Erro na abertura do arquivo\n");
             exit(-1);
         }
 
-        printf("Reading number of Elements From file ....\n");
         fscanf(file, "%d", &number_of_elements);
-        printf("Number of Elements in the file is %d \n", number_of_elements);
+        printf("\nQuantidade de elementos no arquivo: %d\n", number_of_elements);
 
-        // Computing chunk size
-        chunk_size = (number_of_elements %
-                          number_of_process ==
-                      0)
-                         ? (number_of_elements /
-                            number_of_process)
-                         : (number_of_elements /
-                            (number_of_process - 1));
+        // Dimensionamento do chunk
+        chunk_size = (number_of_elements % number_of_process == 0)
+                         ? (number_of_elements / number_of_process)
+                         : (number_of_elements / (number_of_process - 1));
 
-        data = (int *)malloc(number_of_process *
-                             chunk_size *
-                             sizeof(int));
+        data = (int *)malloc(number_of_process * chunk_size * sizeof(int));
 
-        // Reading the rest elements in which operation is being performed
-        printf("Reading the array from the file.......\n");
+        // Assign de cada elemento no arquivo para o vetor data
         for (int i = 0; i < number_of_elements; i++)
             fscanf(file, "%d", &data[i]);
 
-        // Padding data with zero
-        // for (int i = number_of_elements; i < number_of_process * chunk_size; i++)
-        //     data[i] = 0;
-
-        // Printing the array read from file
-        printf("Elements in the array is : \n");
+        // Impressão de cada elemento do vetor
+        printf("Elementos do vetor: \n");
         for (int i = 0; i < number_of_elements; i++)
             printf("%d  ", data[i]);
         printf("\n");
@@ -148,22 +136,22 @@ int main(int argc, char *argv[])
         file = NULL;
     }
 
-    // Blocks all process until reach this point
+    // Bloqueia todos os processos até atingirem esse ponto
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // Starts Timer
+    // Inicia o cronômetro
     time_taken -= MPI_Wtime();
 
-    // BroadCast the Size to all the process from root process
+    // O primeiro processo comunica a todos os outro o number_of_elements (tamanho do vetor)
     MPI_Bcast(&number_of_elements, 1, MPI_INT, 0,
               MPI_COMM_WORLD);
 
-    // Computing chunk size
+    // Dimensionamento do chunk
     chunk_size = (number_of_elements % number_of_process == 0)
                      ? (number_of_elements / number_of_process)
                      : (number_of_elements / (number_of_process - 1));
 
-    // Calculating total size of chunk according to bits
+    // Alocação de espaço em memória para o vetor de chunk
     chunk = (int *)malloc(chunk_size * sizeof(int));
 
     // Scatter the chuck size data to all process
@@ -171,13 +159,12 @@ int main(int argc, char *argv[])
     free(data);
     data = NULL;
 
-    // Compute size of own chunk and then sort them using quick sort
+    // Dimensionamento do chunk de cada processo
     own_chunk_size = (number_of_elements >= chunk_size * (rank_of_process + 1))
                          ? chunk_size
                          : (number_of_elements - chunk_size * rank_of_process);
 
-    // Sorting array with quick sort for every chunk as called by process
-    quicksort(chunk, 0, own_chunk_size);
+    q_sort(chunk, 0, own_chunk_size);
 
     for (int step = 1; step < number_of_process; step = 2 * step)
     {
@@ -211,42 +198,40 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Stop the timer
+    // Pausa o cronômetro
     time_taken += MPI_Wtime();
 
-    // Opening the other file as taken form input and writing it to the file and giving it as the output
+    // Abre o arquivo de saída (output.txt)
     if (rank_of_process == 0)
     {
-        // Opening the file
         file = fopen(argv[2], "w");
 
         if (file == NULL)
         {
-            printf("Error in opening file... \n");
+            printf("Erro na aberura do arquivo.\n");
             exit(-1);
         }
 
-        // Printing total number of elements in the file
+        // Imprime o numero de elementos passados
         fprintf(file, "Total number of Elements in the array : %d\n", own_chunk_size);
 
-        // Printing the value of array in the file
+        // Imprime cada elemento após o sort
         for (int i = 0; i < own_chunk_size; i++)
             fprintf(file, "%d  ", chunk[i]);
 
-        // Closing the file
         fclose(file);
 
-        printf("\n\n\n\nResult printed in output.txt file and shown below: \n");
+        printf("\n\nResultado salvo no arquivo output.txt.\n");
 
-        // For Printing in the terminal
-        printf("Total number of Elements given as input : %d\n", number_of_elements);
-        printf("Sorted array is: \n");
+        // Impressão do resultado
+        printf("Quantidade de elementos no arquivo: %d\n", number_of_elements);
+        printf("Elementos do vetor após o sort: \n");
 
         for (int i = 0; i < number_of_elements; i++)
             printf("%d  ", chunk[i]);
 
-        printf("\n\nQuicksort %d ints on %d procs: %f secs\n", number_of_elements, number_of_process,
-               time_taken);
+        printf("\n\nQuick sorted %d ints em %d processos.", number_of_elements, number_of_process);
+        printf("\nDuração: %f secs\n", time_taken);
     }
 
     MPI_Finalize();

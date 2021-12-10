@@ -11,7 +11,7 @@ void swap(int *arr, int i, int j)
     arr[j] = t;
 }
 
-void quicksort(int *arr, int start, int end)
+void q_sort(int *arr, int start, int end)
 {
     int pivot, index;
 
@@ -34,8 +34,8 @@ void quicksort(int *arr, int start, int end)
 
     swap(arr, start, index);
 
-    quicksort(arr, start, index - start);
-    quicksort(arr, index + 1, start + end - index - 1);
+    q_sort(arr, start, index - start);
+    q_sort(arr, index + 1, start + end - index - 1);
 }
 
 int *merge(int *arr1, int n1, int *arr2, int n2)
@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
 
     if (argc != 3)
     {
-        printf("Desired number of arguments are not their in argv....\n");
-        printf("2 files required first one input and second one output....\n");
+        printf("Não foram passados os 2 arquivos como argumento.\n");
+        printf("São necessários os arquivos: input.txt e output.txt\n");
         exit(-1);
     }
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 
     if (rc != MPI_SUCCESS)
     {
-        printf("Error in creating MPI program Terminating......\n");
+        printf("Erro no start da aplicação.n");
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
 
@@ -103,22 +103,19 @@ int main(int argc, char *argv[])
 
     if (file == NULL)
     {
-        printf("Error in opening file\n");
+        printf("Erro na abertura do arquivo\n");
         exit(-1);
     }
 
-    printf("Reading number of Elements From file ....\n");
     fscanf(file, "%d", &number_of_elements);
-    printf("Number of Elements in the file is %d \n", number_of_elements);
+    printf("\nQuantidade de elementos no arquivo: %d\n", number_of_elements);
 
     data = (int *)malloc(number_of_elements * sizeof(int));
 
-    // Reading the rest elements in which operation is being performed
-    printf("Reading the array from the file.......\n");
     for (int i = 0; i < number_of_elements; i++)
         fscanf(file, "%d", &data[i]);
 
-    // Printing the array read from file
+    // Impressão do arquivo
     printf("Elements in the array is : \n");
     for (int i = 0; i < number_of_elements; i++)
         printf("%d  ", data[i]);
@@ -127,44 +124,40 @@ int main(int argc, char *argv[])
     fclose(file);
     file = NULL;
 
-    // Starts Timer
+    // Inicia o cronômetro
     time_taken -= MPI_Wtime();
 
-    quicksort(data, 0, number_of_elements);
+    q_sort(data, 0, number_of_elements);
 
-    // Stop the timer
+    // Pausa o cronômetro
     time_taken += MPI_Wtime();
 
-    // Opening the other file as taken form input and writing it to the file and giving it as the output
+    // Abre o segundo arquivo de saída (output.txt)
     file = fopen(argv[2], "w");
 
     if (file == NULL)
     {
-        printf("Error in opening file... \n");
+        printf("Erro na abertura do arquivo\n");
         exit(-1);
     }
 
-    // Printing total number of elements in the file
-    fprintf(file, "Total number of Elements in the array : %d\n", number_of_elements);
+    fprintf(file, "\nQuantidade de elementos no arquivo: %d\n", number_of_elements);
 
-    // Printing the value of array in the file
     for (int i = 0; i < number_of_elements; i++)
         fprintf(file, "%d  ", data[i]);
 
-    // Closing the file
     fclose(file);
 
-    printf("\n\n\n\nResult printed in output.txt file "
-           "and shown below: \n");
+    printf("\n\nResultado salvo no arquivo output.txt.\n");
 
-    // For Printing in the terminal
-    printf("Total number of Elements given as input : %d\n", number_of_elements);
-    printf("Sorted array is: \n");
+    printf("Quantidade de elementos no arquivo: %d\n", number_of_elements);
+    printf("Elementos do vetor após o sort: \n");
 
     for (int i = 0; i < number_of_elements; i++)
         printf("%d  ", data[i]);
 
-    printf("\n\nQuicksort %d ints: %f secs\n", number_of_elements, time_taken);
+    printf("\nQuick sorted %d ints.", number_of_elements);
+    printf("\nDuração: %f secs\n", time_taken);
     free(data);
 
     MPI_Finalize();
