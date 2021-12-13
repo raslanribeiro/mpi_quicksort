@@ -100,8 +100,9 @@ int main(int argc, char *argv[])
         printf("Erro no start da aplicação.n");
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
-
+    //Determina o tamanho do grupo associado
     MPI_Comm_size(MPI_COMM_WORLD, &number_of_process);
+    //Determina o rank do processo
     MPI_Comm_rank(MPI_COMM_WORLD, &rank_of_process);
 
     if (rank_of_process == 0)
@@ -209,7 +210,7 @@ int main(int argc, char *argv[])
         }
 
         // Imprime o numero de elementos passados
-        fprintf(file, "Total number of Elements in the array : %d\n", own_chunk_size);
+        fprintf(file, "Quantidade de elementos no vetor: %d\n", own_chunk_size);
 
         // Imprime cada elemento após o sort
         for (int i = 0; i < own_chunk_size; i++)
