@@ -228,10 +228,9 @@ int main(int argc, char *argv[])
             printf("%d  ", chunk[i]);
 
         printf("\n\nQuick sorted %d ints em %d processos.", number_of_elements, number_of_process);
+        fim = MPI_Wtime();
+        printf("\nDuração: %f secs\n", fim - inicio);
     }
-    // Pausa o cronômetro
-    fim = MPI_Wtime();
     MPI_Finalize();
-    printf("\nDuração: %f secs\n", fim - inicio);
     return 0;
 }
