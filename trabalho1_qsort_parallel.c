@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     // Alocação de espaço em memória para o vetor de chunk
     chunk = (int *)malloc(chunk_size * sizeof(int));
 
-    // Scatter the chuck size data to all process
+    // Envia o tamanho do chunk para todos os processos
     MPI_Scatter(data, chunk_size, MPI_INT, chunk, chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
     free(data);
     data = NULL;
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 
         if (file == NULL)
         {
-            printf("Erro na aberura do arquivo.\n");
+            printf("Erro na abertura do arquivo.\n");
             exit(-1);
         }
 
