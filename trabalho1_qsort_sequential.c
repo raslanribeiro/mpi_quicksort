@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
     int number_of_elements;
     int *data = NULL;
     FILE *file = NULL;
-    double time_taken;
+    double inicio, fim;
 
     if (argc != 3)
     {
@@ -125,12 +125,9 @@ int main(int argc, char *argv[])
     file = NULL;
 
     // Inicia o cronômetro
-    time_taken -= MPI_Wtime();
+    inicio = MPI_Wtime();
 
     q_sort(data, 0, number_of_elements);
-
-    // Pausa o cronômetro
-    time_taken += MPI_Wtime();
 
     // Abre o segundo arquivo de saída (output.txt)
     file = fopen(argv[2], "w");
@@ -157,9 +154,10 @@ int main(int argc, char *argv[])
         printf("%d  ", data[i]);
 
     printf("\nQuick sorted %d ints.", number_of_elements);
-    printf("\nDuração: %f secs\n", time_taken);
     free(data);
 
+    fim = MPI_Wtime();
     MPI_Finalize();
+    printf("\nDuração: %f secs\n", fim - inicio);
     return 0;
 }

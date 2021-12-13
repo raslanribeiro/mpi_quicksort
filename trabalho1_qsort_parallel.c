@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     int chunk_size, own_chunk_size;
     int *chunk;
     FILE *file = NULL;
-    double time_taken;
+    double inicio, fim;
     MPI_Status status;
 
     if (argc != 3)
@@ -92,6 +92,8 @@ int main(int argc, char *argv[])
 
     int number_of_process, rank_of_process;
     int rc = MPI_Init(&argc, &argv);
+    // Inicia o cronômetro
+    inicio = MPI_Wtime();
 
     if (rc != MPI_SUCCESS)
     {
@@ -138,9 +140,6 @@ int main(int argc, char *argv[])
 
     // Bloqueia todos os processos até atingirem esse ponto
     MPI_Barrier(MPI_COMM_WORLD);
-
-    // Inicia o cronômetro
-    time_taken -= MPI_Wtime();
 
     // O primeiro processo comunica a todos os outro o number_of_elements (tamanho do vetor)
     MPI_Bcast(&number_of_elements, 1, MPI_INT, 0,
@@ -198,9 +197,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Pausa o cronômetro
-    time_taken += MPI_Wtime();
-
     // Abre o arquivo de saída (output.txt)
     if (rank_of_process == 0)
     {
@@ -231,9 +227,10 @@ int main(int argc, char *argv[])
             printf("%d  ", chunk[i]);
 
         printf("\n\nQuick sorted %d ints em %d processos.", number_of_elements, number_of_process);
-        printf("\nDuração: %f secs\n", time_taken);
     }
-
+    // Pausa o cronômetro
+    fim = MPI_Wtime();
     MPI_Finalize();
+    printf("\nDuração: %f secs\n", fim - inicio);
     return 0;
 }
