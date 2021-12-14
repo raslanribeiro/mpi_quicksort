@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
         // Dimensionamento do chunk
         chunk_size = (number_of_elements % number_of_process == 0)
                          ? (number_of_elements / number_of_process)
-                         : (number_of_elements / (number_of_process - 1));
+                         : (number_of_elements / number_of_process) + 1;
 
         data = (int *)malloc(number_of_process * chunk_size * sizeof(int));
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     // Dimensionamento do chunk
     chunk_size = (number_of_elements % number_of_process == 0)
                      ? (number_of_elements / number_of_process)
-                     : (number_of_elements / (number_of_process - 1));
+                     : (number_of_elements / number_of_process) + 1;
 
     // Alocação de espaço em memória para o vetor de chunk
     chunk = (int *)malloc(chunk_size * sizeof(int));
