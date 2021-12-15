@@ -169,18 +169,16 @@ int main(int argc, char *argv[])
 
     if (rank_of_process != 0)
     {
-        MPI_Send(chunk, own_chunk_size, MPI_INT,
-                 0, 0,
-                 MPI_COMM_WORLD);
+        MPI_Send(chunk, own_chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
     }
     else
     {
         for (int origin = 1; origin < number_of_process; origin++)
         {
 
-            int received_chunk_size = (number_of_elements >= chunk_size * (rank_of_process + 2 * origin))
-                                          ? (chunk_size * origin)
-                                          : (number_of_elements - chunk_size * (rank_of_process + origin));
+            int received_chunk_size = (number_of_elements >= chunk_size * (rank_of_process))
+                                          ? (chunk_size)
+                                          : (number_of_elements - chunk_size * (rank_of_process));
             int *chunk_received;
             chunk_received = (int *)malloc(received_chunk_size * sizeof(int));
             MPI_Recv(chunk_received, received_chunk_size,
