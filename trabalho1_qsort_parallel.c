@@ -154,7 +154,8 @@ int main(int argc, char *argv[])
     // Alocação de espaço em memória para o vetor de chunk
     chunk = (int *)malloc(chunk_size * sizeof(int));
 
-    // Envia o tamanho do chunk para todos os processos
+    // Envia partes diferentes do vetor data para todos os processos.
+    // Essas partes são divididas de acordo com o chunk_size
     MPI_Scatter(data, chunk_size, MPI_INT, chunk, chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
     free(data);
     data = NULL;
