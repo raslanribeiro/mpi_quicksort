@@ -167,25 +167,24 @@ int main(int argc, char *argv[])
 
     q_sort(chunk, 0, own_chunk_size);
 
-    for (int step = 1; step < number_of_process; step = 2 * step)
+    if (rank_of_process != 0)
     {
-        if (rank_of_process % (2 * step) != 0)
+        MPI_Send(chunk, own_chunk_size, MPI_INT,
+                 0, 0,
+                 MPI_COMM_WORLD);
+    }
+    else
+    {
+        for (int origin = 1; origin < number_of_process; origin++)
         {
-            MPI_Send(chunk, own_chunk_size, MPI_INT,
-                     rank_of_process - step, 0,
-                     MPI_COMM_WORLD);
-            break;
-        }
 
-        if (rank_of_process + step < number_of_process)
-        {
-            int received_chunk_size = (number_of_elements >= chunk_size * (rank_of_process + 2 * step))
-                                          ? (chunk_size * step)
-                                          : (number_of_elements - chunk_size * (rank_of_process + step));
+            int received_chunk_size = (number_of_elements >= chunk_size * (rank_of_process + 2 * origin))
+                                          ? (chunk_size * origin)
+                                          : (number_of_elements - chunk_size * (rank_of_process + origin));
             int *chunk_received;
             chunk_received = (int *)malloc(received_chunk_size * sizeof(int));
             MPI_Recv(chunk_received, received_chunk_size,
-                     MPI_INT, rank_of_process + step, 0,
+                     MPI_INT, rank_of_process + origin, 0,
                      MPI_COMM_WORLD, &status);
 
             data = merge(chunk, own_chunk_size,
