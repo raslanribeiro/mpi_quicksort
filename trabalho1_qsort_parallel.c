@@ -77,23 +77,23 @@ int main(int argc, char *argv[])
 {
     int number_of_elements;
     int *data = NULL;
-    int chunk_size, own_chunk_size;
+    int chunk_size, self_chunk_size;
     int *chunk;
     FILE *file = NULL;
-    double inicio, fim;
+    double start, end;
     MPI_Status status;
 
     if (argc != 3)
     {
-        printf("Não foram passados os 2 arquivos como argumento.\n");
+        printf("\nNão foram passados os 2 arquivos como argumento.\n");
         printf("São necessários os arquivos: input.txt e output.txt\n");
         exit(-1);
     }
 
-    int number_of_process, rank_of_process;
+    int process_number, rank_of_process;
     int rc = MPI_Init(&argc, &argv);
     // Inicia o cronômetro
-    inicio = MPI_Wtime();
+    start = MPI_Wtime();
 
     if (rc != MPI_SUCCESS)
     {
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
     //Determina o tamanho do grupo associado
-    MPI_Comm_size(MPI_COMM_WORLD, &number_of_process);
+    MPI_Comm_size(MPI_COMM_WORLD, &process_number);
     //Determina o rank do processo
     MPI_Comm_rank(MPI_COMM_WORLD, &rank_of_process);
 
@@ -119,11 +119,11 @@ int main(int argc, char *argv[])
         printf("\nQuantidade de elementos no arquivo: %d\n", number_of_elements);
 
         // Dimensionamento do chunk
-        chunk_size = (number_of_elements % number_of_process == 0)
-                         ? (number_of_elements / number_of_process)
-                         : (number_of_elements / number_of_process) + 1;
+        chunk_size = (number_of_elements % process_number == 0)
+                         ? (number_of_elements / process_number)
+                         : (number_of_elements / process_number) + 1;
 
-        data = (int *)malloc(number_of_process * chunk_size * sizeof(int));
+        data = (int *)malloc(process_number * chunk_size * sizeof(int));
 
         // Assign de cada elemento no arquivo para o vetor data
         for (int i = 0; i < number_of_elements; i++)
@@ -147,9 +147,9 @@ int main(int argc, char *argv[])
               MPI_COMM_WORLD);
 
     // Dimensionamento do chunk
-    chunk_size = (number_of_elements % number_of_process == 0)
-                     ? (number_of_elements / number_of_process)
-                     : (number_of_elements / number_of_process) + 1;
+    chunk_size = (number_of_elements % process_number == 0)
+                     ? (number_of_elements / process_number)
+                     : (number_of_elements / process_number) + 1;
 
     // Alocação de espaço em memória para o vetor de chunk
     chunk = (int *)malloc(chunk_size * sizeof(int));
@@ -161,38 +161,30 @@ int main(int argc, char *argv[])
     data = NULL;
 
     // Dimensionamento do chunk de cada processo
-    own_chunk_size = (number_of_elements >= chunk_size * (rank_of_process + 1))
-                         ? chunk_size
-                         : (number_of_elements - chunk_size * rank_of_process);
+    self_chunk_size = (number_of_elements >= chunk_size * (rank_of_process + 1))
+                          ? chunk_size
+                          : (number_of_elements - chunk_size * rank_of_process);
 
-    q_sort(chunk, 0, own_chunk_size);
+    q_sort(chunk, 0, self_chunk_size);
 
     if (rank_of_process != 0)
     {
-        MPI_Send(chunk, own_chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(chunk, self_chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
     }
     else
     {
-        for (int origin = 1; origin < number_of_process; origin++)
+        for (int origin = 1; origin < process_number; origin++)
         {
-
-            int received_chunk_size = (number_of_elements >= chunk_size * (rank_of_process))
-                                          ? (chunk_size)
-                                          : (number_of_elements - chunk_size * (rank_of_process));
             int *chunk_received;
-            chunk_received = (int *)malloc(received_chunk_size * sizeof(int));
-            MPI_Recv(chunk_received, received_chunk_size,
-                     MPI_INT, origin, 0,
-                     MPI_COMM_WORLD, &status);
+            chunk_received = (int *)malloc(chunk_size * sizeof(int));
+            MPI_Recv(chunk_received, chunk_size, MPI_INT, origin, 0, MPI_COMM_WORLD, &status);
 
-            data = merge(chunk, own_chunk_size,
-                         chunk_received,
-                         received_chunk_size);
+            data = merge(chunk, self_chunk_size, chunk_received, chunk_size);
 
             free(chunk);
             free(chunk_received);
             chunk = data;
-            own_chunk_size = own_chunk_size + received_chunk_size;
+            self_chunk_size = self_chunk_size + chunk_size;
         }
     }
 
@@ -208,10 +200,10 @@ int main(int argc, char *argv[])
         }
 
         // Imprime o numero de elementos passados
-        fprintf(file, "Quantidade de elementos no vetor: %d\n", own_chunk_size);
+        fprintf(file, "Quantidade de elementos no vetor: %d\n", self_chunk_size);
 
         // Imprime cada elemento após o sort
-        for (int i = 0; i < own_chunk_size; i++)
+        for (int i = 0; i < self_chunk_size; i++)
             fprintf(file, "%d  ", chunk[i]);
 
         fclose(file);
@@ -225,9 +217,9 @@ int main(int argc, char *argv[])
         for (int i = 0; i < number_of_elements; i++)
             printf("%d  ", chunk[i]);
 
-        printf("\n\nQuick sorted %d ints em %d processos.", number_of_elements, number_of_process);
-        fim = MPI_Wtime();
-        printf("\nDuração: %f secs\n", fim - inicio);
+        printf("\n\nQuick sorted %d ints em %d processos.", number_of_elements, process_number);
+        end = MPI_Wtime();
+        printf("\nDuração: %f secs\n", end - start);
     }
     MPI_Finalize();
     return 0;
