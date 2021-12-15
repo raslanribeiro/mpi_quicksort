@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
             int *chunk_received;
             chunk_received = (int *)malloc(received_chunk_size * sizeof(int));
             MPI_Recv(chunk_received, received_chunk_size,
-                     MPI_INT, rank_of_process + origin, 0,
+                     MPI_INT, origin, 0,
                      MPI_COMM_WORLD, &status);
 
             data = merge(chunk, own_chunk_size,
