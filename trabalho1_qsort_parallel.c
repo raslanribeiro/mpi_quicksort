@@ -1,8 +1,6 @@
-#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
+#include <mpi.h>
 
 void swap(int *arr, int i, int j)
 {
@@ -116,7 +114,7 @@ int main(int argc, char *argv[])
         }
 
         fscanf(file, "%d", &number_of_elements);
-        printf("\nQuantidade de elementos no arquivo: %d\n", number_of_elements);
+        printf("\nQuantidade de elementos no arquivo de entrada: %d\n", number_of_elements);
 
         // Dimensionamento do chunk
         chunk_size = (number_of_elements % process_number == 0)
@@ -169,7 +167,8 @@ int main(int argc, char *argv[])
 
     if (rank_of_process != 0)
     {
-        MPI_Send(chunk, self_chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        int destino = 0, tag = 0;
+        MPI_Send(chunk, self_chunk_size, MPI_INT, destino, tag, MPI_COMM_WORLD);
     }
     else
     {
@@ -211,7 +210,7 @@ int main(int argc, char *argv[])
         printf("\n\nResultado salvo no arquivo output.txt.\n");
 
         // Impressão do resultado
-        printf("Quantidade de elementos no arquivo: %d\n", number_of_elements);
+        printf("Quantidade de elementos no arquivo de saída: %d\n", number_of_elements);
         printf("Elementos do vetor após o sort: \n");
 
         for (int i = 0; i < number_of_elements; i++)
