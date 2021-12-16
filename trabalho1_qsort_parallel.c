@@ -141,8 +141,8 @@ int main(int argc, char *argv[])
     MPI_Barrier(MPI_COMM_WORLD);
 
     // O primeiro processo comunica a todos os outro o number_of_elements (tamanho do vetor)
-    MPI_Bcast(&number_of_elements, 1, MPI_INT, 0,
-              MPI_COMM_WORLD);
+    int brodcast_root_rank = 0;
+    MPI_Bcast(&number_of_elements, 1, MPI_INT, brodcast_root_rank, MPI_COMM_WORLD);
 
     // Dimensionamento do chunk
     chunk_size = (number_of_elements % number_of_processes == 0)
