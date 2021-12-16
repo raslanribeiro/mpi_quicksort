@@ -154,7 +154,8 @@ int main(int argc, char *argv[])
 
     // Envia partes diferentes do vetor data para todos os processos.
     // Essas partes são divididas de acordo com o chunk_size
-    MPI_Scatter(data, chunk_size, MPI_INT, chunk, chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
+    int sending_process_rank = 0;
+    MPI_Scatter(data, chunk_size, MPI_INT, chunk, chunk_size, MPI_INT, sending_process_rank, MPI_COMM_WORLD);
     free(data);
     data = NULL;
 
