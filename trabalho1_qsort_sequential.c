@@ -1,8 +1,6 @@
-#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
+#include <mpi.h>
 
 void swap(int *arr, int i, int j)
 {
@@ -78,26 +76,23 @@ int main(int argc, char *argv[])
     int number_of_elements;
     int *data = NULL;
     FILE *file = NULL;
-    double inicio, fim;
+    double start, end;
 
     if (argc != 3)
     {
-        printf("Não foram passados os 2 arquivos como argumento.\n");
+        printf("\nNão foram passados os 2 arquivos como argumento.\n");
         printf("São necessários os arquivos: input.txt e output.txt\n");
         exit(-1);
     }
-
-    int number_of_process, rank_of_process;
     int rc = MPI_Init(&argc, &argv);
+    // Inicia o cronômetro
+    start = MPI_Wtime();
 
     if (rc != MPI_SUCCESS)
     {
         printf("Erro no start da aplicação.n");
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
-
-    MPI_Comm_size(MPI_COMM_WORLD, &number_of_process);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank_of_process);
 
     file = fopen(argv[1], "r");
 
@@ -108,15 +103,16 @@ int main(int argc, char *argv[])
     }
 
     fscanf(file, "%d", &number_of_elements);
-    printf("\nQuantidade de elementos no arquivo: %d\n", number_of_elements);
+    printf("\nQuantidade de elementos no arquivo de entrada: %d\n", number_of_elements);
 
     data = (int *)malloc(number_of_elements * sizeof(int));
 
+    // Assign de cada elemento no arquivo para o vetor data
     for (int i = 0; i < number_of_elements; i++)
         fscanf(file, "%d", &data[i]);
 
-    // Impressão do arquivo
-    printf("Elements in the array is : \n");
+    // Impressão de cada elemento do vetor
+    printf("Elementos do vetor: \n");
     for (int i = 0; i < number_of_elements; i++)
         printf("%d  ", data[i]);
     printf("\n");
@@ -124,22 +120,20 @@ int main(int argc, char *argv[])
     fclose(file);
     file = NULL;
 
-    // Inicia o cronômetro
-    inicio = MPI_Wtime();
-
     q_sort(data, 0, number_of_elements);
 
-    // Abre o segundo arquivo de saída (output.txt)
     file = fopen(argv[2], "w");
 
     if (file == NULL)
     {
-        printf("Erro na abertura do arquivo\n");
+        printf("Erro na abertura do arquivo.\n");
         exit(-1);
     }
 
-    fprintf(file, "\nQuantidade de elementos no arquivo: %d\n", number_of_elements);
+    // Imprime o numero de elementos passados
+    fprintf(file, "Quantidade de elementos no vetor: %d\n", number_of_elements);
 
+    // Imprime cada elemento após o sort
     for (int i = 0; i < number_of_elements; i++)
         fprintf(file, "%d  ", data[i]);
 
@@ -147,17 +141,17 @@ int main(int argc, char *argv[])
 
     printf("\n\nResultado salvo no arquivo output.txt.\n");
 
-    printf("Quantidade de elementos no arquivo: %d\n", number_of_elements);
+    // Impressão do resultado
+    printf("Quantidade de elementos no arquivo de saída: %d\n", number_of_elements);
     printf("Elementos do vetor após o sort: \n");
 
     for (int i = 0; i < number_of_elements; i++)
         printf("%d  ", data[i]);
 
-    printf("\nQuick sorted %d ints.", number_of_elements);
-    free(data);
+    printf("\n\nQuick sorted %d ints.", number_of_elements);
 
-    fim = MPI_Wtime();
+    end = MPI_Wtime();
+    printf("\nDuração: %f secs\n", end - start);
     MPI_Finalize();
-    printf("\nDuração: %f secs\n", fim - inicio);
     return 0;
 }
