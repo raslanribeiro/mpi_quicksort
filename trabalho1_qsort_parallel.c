@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
             free(chunk);
             free(chunk_received);
             chunk = data;
-            self_chunk_size = self_chunk_size + chunk_size;
+            self_chunk_size += chunk_size;
         }
     }
 
