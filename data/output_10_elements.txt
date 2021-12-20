@@ -1,3 +1,2 @@
-
-Quantidade de elementos no arquivo: 10
+Quantidade de elementos no vetor: 10
 1  2  3  8  9  12  25  28  30  70  
