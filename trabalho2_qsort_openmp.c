@@ -31,44 +31,13 @@ void q_sort(int *arr, int start, int end)
     }
 
     swap(arr, start, index);
-
-    q_sort(arr, start, index - start);
-    q_sort(arr, index + 1, start + end - index - 1);
-}
-
-int *merge(int *arr1, int n1, int *arr2, int n2)
-{
-    int *result = (int *)malloc((n1 + n2) * sizeof(int));
-    int i = 0;
-    int j = 0;
-    int k;
-
-    for (k = 0; k < n1 + n2; k++)
+    #pragma omp parallel sections num_threads(4)
     {
-        if (i >= n1)
-        {
-            result[k] = arr2[j];
-            j++;
-        }
-        else if (j >= n2)
-        {
-            result[k] = arr1[i];
-            i++;
-        }
-
-        else if (arr1[i] < arr2[j])
-        {
-            result[k] = arr1[i];
-            i++;
-        }
-
-        else
-        {
-            result[k] = arr2[j];
-            j++;
-        }
+    #pragma omp section
+        q_sort(arr, start, index - start);
+    #pragma omp section
+        q_sort(arr, index + 1, start + end - index - 1);
     }
-    return result;
 }
 
 int main(int argc, char *argv[])
