@@ -21,31 +21,36 @@ void q_sort(int *arr, int start, int end)
 
     index = start;
 
+    #pragma omp parallel for
     for (int i = start + 1; i < start + end; i++)
-    {
-        if (arr[i] < pivot)
         {
-            index++;
-            swap(arr, i, index);
+            if (arr[i] < pivot)
+            {
+                index++;
+                swap(arr, i, index);
+            }
         }
-    }
 
     swap(arr, start, index);
-    #pragma omp parallel sections num_threads(4)
-    {
-    #pragma omp section
-        q_sort(arr, start, index - start);
-    #pragma omp section
-        q_sort(arr, index + 1, start + end - index - 1);
-    }
+    #pragma omp parallel sections
+        {
+        #pragma omp section
+            q_sort(arr, start, index - start);
+        #pragma omp section
+            q_sort(arr, index + 1, start + end - index - 1);
+        }
 }
 
 int main(int argc, char *argv[])
-{
+{   
+    int num_of_threads;
+    scanf("%d", &num_of_threads);
+    omp_set_num_threads(num_of_threads);
     int number_of_elements;
     int *data = NULL;
     FILE *file = NULL;
     double start, end;
+    int i;
 
     if (argc != 3)
     {
@@ -70,12 +75,12 @@ int main(int argc, char *argv[])
     data = (int *)malloc(number_of_elements * sizeof(int));
 
     // Assign de cada elemento no arquivo para o vetor data
-    for (int i = 0; i < number_of_elements; i++)
+    for (i = 0; i < number_of_elements; i++)
         fscanf(file, "%d", &data[i]);
 
     // Impressão de cada elemento do vetor
     printf("Elementos do vetor: \n");
-    for (int i = 0; i < number_of_elements; i++)
+    for (i = 0; i < number_of_elements; i++)
         printf("%d  ", data[i]);
     printf("\n");
 
@@ -96,7 +101,7 @@ int main(int argc, char *argv[])
     fprintf(file, "Quantidade de elementos no vetor: %d\n", number_of_elements);
 
     // Imprime cada elemento após o sort
-    for (int i = 0; i < number_of_elements; i++)
+    for (i = 0; i < number_of_elements; i++)
         fprintf(file, "%d  ", data[i]);
 
     fclose(file);
@@ -107,7 +112,7 @@ int main(int argc, char *argv[])
     printf("Quantidade de elementos no arquivo de saída: %d\n", number_of_elements);
     printf("Elementos do vetor após o sort: \n");
 
-    for (int i = 0; i < number_of_elements; i++)
+    for (i = 0; i < number_of_elements; i++)
         printf("%d  ", data[i]);
 
     printf("\n\nQuick sorted %d ints.", number_of_elements);
