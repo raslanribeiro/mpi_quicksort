@@ -74,6 +74,7 @@ int main(int argc, char *argv[])
 
     data = (int *)malloc(number_of_elements * sizeof(int));
 
+    #pragma omp parallel for shared(data)
     // Assign de cada elemento no arquivo para o vetor data
     for (i = 0; i < number_of_elements; i++)
         fscanf(file, "%d", &data[i]);
